@@ -1,0 +1,143 @@
+#! /bin/bash
+function main(){
+
+echo "This is for encryption or description of file"
+echo -n "Please type 'e' for encryption, 'd' for decryption or 'x' for exiting from this: "
+read ans1
+
+if [ $ans1 == e ]; then
+	function file(){
+       
+		echo -n "if you want to create a new file, then type 'c' or if the file already exist,then type 'a' : "
+		read ans2
+		
+	
+		function path(){
+
+			if [ $ans2 == a ]; then
+				echo -n "Specify the absolute path of the directory where file is to stored: "
+				read path
+				cd $path
+				ls $path
+				if [ -z "$path" ]; then
+					echo "specify path properly"
+					path
+				fi
+				echo -n "Enter the name of the file: "
+				read name
+			cat $name
+			elif [ $ans2 == c ]; then
+				echo -n "Write the name of the file : "
+				read name
+				echo -n "Specify the absolute path of the directory where file is to be created: "
+				read path
+				cd $path
+				if [ -z "$path" ];then
+					echo "specify the path properly"
+					path
+				fi
+				echo " Press ctrl + d after you finish inserting data in file."
+				echo "Now write your message"
+				cat > $name
+				echo ""
+			else 
+				echo "Invalid input! specify the path properly or enter proper file name"
+				file
+			fi
+		}
+		path
+	}
+	file
+
+
+	function encryption(){
+
+		echo -n "Enter the name of file in which data is to be encrypted to: "
+		read enc
+		echo -n "Enter 's' for symmetric key encryption or 'a' for asymmetric key encryption: "
+		read ans3
+
+		if [ $ans3 == s ]; then
+
+			function symmetric(){
+				echo " The algorithm are printed below"
+				openssl list -cipher-commands
+				echo -n "Choose the algorithm which you want to use: "
+				read algo1
+				echo -n "Add the password for it: "
+				read pass1
+				if [ -n "algo1" ]; then
+					openssl enc -$algo1 -in $path/$name -out $path/$enc -k $pass1
+					echo "Encrypting ...."
+					echo "Successfully! encrypted"
+				else 
+					echo "No input, please add the alogorith properly"
+					symmetric
+				fi
+			}
+			symmetric
+		elif [ $ans3 == a ]; then
+
+
+			function asymmetric(){
+				echo "The algorithm are printed below"
+				echo "Generating private key .... "
+				openssl genrsa -out private_key.pem 1024
+				echo "Extracting public key from private key ...."
+				openssl rsa -in private_key.pem -pubout -out public_key.pem
+				echo "Encrypting with public key ...."
+				openssl rsautl -encrypt -inkey public_key.pem -pubin -in $name -out $enc
+			}	
+			asymmetric
+		else 
+			echo " enter the symbol of key properly as instructed"
+			encryption
+	
+		fi
+	}
+	encryption
+
+elif [ $ans1 == d ]; then
+	function decryption(){
+		ls
+		echo -n "Enter the file name for decryption: "
+		read name1
+		echo -n "Enter the file name for storing decrypted data: "
+		read dec_file
+		echo -n "If your file is encrypted with asymmetric key then press 'a' or if with symmetric key then press 's' : "
+		read t_key
+		
+		if [ $t_key == a ]; then
+			echo "Decrypting ...."
+			openssl rsautl -decrypt -inkey private_key.pem -in $name1 -out $dec_file
+			cat $dec_file
+			echo "Successfully! decrypted"
+		elif [ $t_key == s ]; then
+			echo -n "Enter the password for symmetric key : "
+			read passwd
+			echo -n "Enter the algorithm used: "
+			read algorithm1
+			echo "Decrypting ...."
+			openssl enc -$algorithm1 -d -in $name1 -out $dec_file -k $passwd
+			echo ""
+			echo "decrypted succesfully! "
+		else
+			echo "please add the value properly as instructed"
+			decryption
+		fi
+	}
+	decryption
+elif [ $ans1 == x ]; then
+	echo "Good Bye!"
+	echo "exiting ...."
+else 
+	echo "Please enter the value properly"
+	main
+fi
+
+
+
+
+}
+main
+
